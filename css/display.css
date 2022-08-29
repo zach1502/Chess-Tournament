@@ -1,0 +1,30 @@
+#score pre {
+    margin: 0px;
+}
+#myBoard {
+    float: left;
+    width: auto
+}
+#score {
+    float: left;
+    width: fit-content;
+    margin: 10px;
+    border: 1px solid black;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#currentMatch{
+    float: left;
+    padding-left: 10px;
+    font-size: 32pt;
+    width: fit-content;
+}
+
+#upper{
+    max-width: 1250px;
+}
+
+#move-history {
+    clear: both;
+}

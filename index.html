@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang = "en-CA">
+    <head>
+        <link rel="stylesheet" href="css/chessboard-1.0.0.min.css">
+        <link rel="stylesheet" href="css/display.css">
+        <title>
+            chess
+        </title>
+    </head>
+
+    <body>
+        <div id="upper">
+            <div id="myBoard" style="width: 400px;"></div>
+            <div id="score"></div>
+            <div id="currentMatch"></div>
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="js/chessboard-1.0.0.min.js"></script> <!-- Chessboard GUI -->
+        <script src="js/chess.js"></script> <!-- Chess logic -->
+
+        <!-- Regular AI -->
+        <script src="js/AI/MiniMax/Default/minimaxAI.js"></script>
+        <script src="js/AI/MiniMax/Default/openingBook.js"></script>
+        <script src="js/AI/MiniMax/Default/evaluation.js"></script>
+
+        <!-- Variations on the minimax AI -->
+        <script src="js/AI/MiniMax/Worstfish/WorstfishAI.js"></script>
+        <script src="js/AI/MiniMax/Trollfish/TrollfishAI.js"></script>
+
+        <!-- simple AI -->
+        <script src="js/AI/alphabeticalAI.js"></script> <!-- 1 -->
+        <script src="js/AI/antiAlphabeticalAI.js"></script> <!-- 2 -->
+        <script src="js/AI/randomAI.js"></script>
+        <script src="js/AI/CCAAI.js"></script>
+        <script src="js/AI/huddleAI.js"></script>
+        <script src="js/AI/fastestMateAI.js"></script>
+        <script src="js/AI/legalAI.js"></script>
+        <script src="js/AI/suicideAI.js"></script>
+        <script src="js/AI/colourAI.js"></script>
+        <script src="js/AI/swarmAI.js"></script>
+        <script src="js/AI/antiChessAI.js"></script>
+        <script src="js/AI/markovChainAI/markovAI.js"></script>
+        <script src="js/AI/markovChainAI/markovChains.js"></script>
+
+        <script>
+            function renderMoveHistory(moves) {
+                var historyElement = $('#move-history').empty();
+                historyElement.empty();
+                for (var i = 0; i < moves.length; i += 2) {
+                    historyElement.append('<span>' + ((i >> 1) + 1) + '. ' + moves[i] + ' ' + (moves[i + 1] ? moves[i + 1] : ' ') + '</span><br>')
+                }
+                historyElement.scrollTop(historyElement[0].scrollHeight);
+            };
+
+            function updateScores(arrayOfAI, arrayOfAINames, elo, wins, draws, losses) {
+                var scoreElement = $('#score').empty();
+                scoreElement.empty();
+                for (var i = 0; i < arrayOfAI.length; i++) {
+                    const name = `Name: ${arrayOfAINames[i]}`.padEnd(30);
+                    const points = `Elo: ${Math.trunc(elo[i]*100)/100}`; // trunc to 2 decimals, unrounded
+                    const winHist = `W/D/L: ${wins[i]}/${draws[i]}/${losses[i]}`;
+                    scoreElement.append('<span><pre>' + name.padEnd(35) + points.padEnd(20) + winHist.padEnd(10) +'</pre></span>')
+                }
+                scoreElement.scrollTop(scoreElement[0].scrollHeight);
+            };
+
+            function getCurrentMatch(arrayOfAINames, i, j) {
+                var currentMatch = $('#currentMatch').empty();
+                currentMatch.empty();
+                currentMatch.append(`<span> ${arrayOfAINames[i]} VS ${arrayOfAINames[j]} </span>`)
+                currentMatch.scrollTop(currentMatch[0].scrollHeight);
+            }
+
+            function delay(delayInms) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                    resolve(2);
+                    }, delayInms);
+                });
+            }
+
+            function updatePosition(board, chess){
+                board.position(chess.fen());
+            }
+
+            var materialTable;
+
+            async function main() {
+
+                materialTable = buildMaterialTable();
+
+                config = {
+                    draggable: true,
+                    position: 'start',
+                }
+                board = ChessBoard('myBoard', config);
+                var chess = new Chess();
+
+                var arrayOfAI = [
+                    // Can only move one piece, when it dies, it will move a new piece
+                    // When it moves, it will always move a different piece (unless forced to)
+                    //async function(){possessedAI(chess)}
+                    async function(){markovAI(chess, turn)}, // uses markov chains to make moves, built on 13 gb worth of lichess games from their database
+                    async function(){worstfishAI(chess, turn, 3)}, // minimaxAI but picks the worst move
+                    async function(){swarmAI(chess, turn)}, // pieces goes to other king
+                    async function(){suicideAI(chess)}, // king goes to other king
+                    async function(){randomAI(chess, turn)}, // purely random
+                    async function(){normDistAI(chess)}, // random, but picked with a normal distribution
+                    async function(){await sha256AI(chess)}, // makes a move based on the sha256 hash of the board
+                    async function(){binomialDistAI(chess)}, // random, but picked with a binomial distribution
+                    async function(){selfCripplingAI(chess)}, // maximizes the ratio of moves it can make vs the number of opponent's moves
+                    async function(){lawyerAI(chess)}, // minimizes the ratio of moves it can make vs the number of opponent's moves
+                    async function(){liberationAI(chess)}, // maximizes opponent's possible moves
+                    async function(){rightRemovalAI(chess)}, // minimizes opponent's possible moves
+                    async function(){huddleAI(chess, turn)}, // pieces goes close to the friendly king
+                    async function(){fastMateAI(chess, turn, 3)}, // finds the fastest mate possible, goes 3 deep
+                    async function(){sameColorAI(chess, turn)}, // pieces goes to the same color
+                    async function(){oppositeColorAI(chess, turn)}, // pieces goes to the opposite color
+                    async function(){CheckmateCheckAttack(chess)}, // picks a checkmate, if not Check, if not attack, if not, some random move
+                    async function(){antiChessAI(chess, turn)}, // minimax but captures are forced
+                    async function(){alphabeticalAI(chess)}, // picks the first move from a move list sorted alphabetically
+                    async function(){antiAlphabeticalAI(chess)}, // picks the last move from a move list sorted alphabetically
+                    async function(){minimaxAI(chess, turn, 3, false, false, false, false)}, 
+                    async function(){minimaxAI(chess, turn, 3, false, false, false, true)}, 
+                    // async function(){minimaxAI(chess, turn, 3, false, false, true, false)},
+                    // async function(){minimaxAI(chess, turn, 3, false, false, true, true)},
+                    // async function(){minimaxAI(chess, turn, 3, false, true, false, false)},
+                    // async function(){minimaxAI(chess, turn, 3, false, true, false, true)},
+                    // async function(){minimaxAI(chess, turn, 3, false, true, true, false)},
+                    // async function(){minimaxAI(chess, turn, 3, false, true, true, true)},
+                    // async function(){minimaxAI(chess, turn, 3, true, false, false, false)},
+                    // async function(){minimaxAI(chess, turn, 3, true, false, false, true)},
+                    // async function(){minimaxAI(chess, turn, 3, true, false, true, false)},
+                    // async function(){minimaxAI(chess, turn, 3, true, false, true, true)},
+                    // async function(){minimaxAI(chess, turn, 3, true, true, false, false)},
+                    // async function(){minimaxAI(chess, turn, 3, true, true, false, true)},
+                    // async function(){minimaxAI(chess, turn, 3, true, true, true, false)},
+                    // async function(){minimaxAI(chess, turn, 3, true, true, true, true)},
+                ];
+
+                var arrayOfAINames = [
+                    "Markov AI",
+                    "Worstfish AI",
+                    "Swarm AI",
+                    "Suicide AI",
+                    "Random AI",
+                    "Normal Distribution AI",
+                    "SHA-256 AI",
+                    "BinomialDistribution AI",
+                    "Self-Cripling AI",
+                    "Lawyer AI",
+                    "Liberation AI",
+                    "Anti-Movement AI",
+                    "Huddle AI",
+                    "Fastest Mate AI",
+                    "Same Color AI",
+                    "Opposite Color AI",
+                    "Checkmate Check Attack AI",
+                    "Anti-Chess AI",
+                    "Alphabetical AI",
+                    "Anti-Alphabetical AI",
+                    "MiniMax AI FFFF", // no futility, no deep futility, no super deep futility, no quiet search
+                    "MiniMax AI FFFT", // no futility, no deep futility, no super deep futility, quiet search
+                    // "MiniMax AI FFTF", // no futility, no deep futility, super deep futility, no quiet search
+                    // "MiniMax AI FFTT", // no futility, no deep futility, super deep futility, quiet search
+                    // "MiniMax AI FTFF", // no futility, deep futility, no super deep futility, no quiet search   
+                    // "MiniMax AI FTFT", // no futility, deep futility, no super deep futility, quiet search
+                    // "MiniMax AI FTTF", // no futility, deep futility, super deep futility, no quiet search
+                    // "MiniMax AI FTTT", // no futility, deep futility, super deep futility, quiet search
+                    // "MiniMax AI TFFF", // futility, no deep futility, no super deep futility, no quiet search
+                    // "MiniMax AI TFFT", // futility, no deep futility, no super deep futility, quiet search
+                    // "MiniMax AI TFTF", // futility, no deep futility, super deep futility, no quiet search
+                    // "MiniMax AI TFTT", // futility, no deep futility, super deep futility, quiet search
+                    // "MiniMax AI TTFF", // futility, deep futility, no super deep futility, no quiet search
+                    // "MiniMax AI TTFT", // futility, deep futility, no super deep futility, quiet search
+                    // "MiniMax AI TTTF", // futility, deep futility, super deep futility, no quiet search
+                    // "MiniMax AI TTTT" // futility, deep futility, super deep futility, quiet search
+                ]
+
+                var games = [];
+
+                var elo = [];
+                for (var i = 0; i < arrayOfAI.length; i++) {
+                    elo.push(1000.0);
+                }
+
+                var wins = [];
+                for (var i = 0; i < arrayOfAI.length; i++) {
+                    wins.push(0);
+                }
+
+                var losses = [];
+                for (var i = 0; i < arrayOfAI.length; i++) {
+                    losses.push(0);
+                }
+
+                var draws = [];
+                for (var i = 0; i < arrayOfAI.length; i++) {
+                    draws.push(0);
+                }
+                for(var rounds = 0; rounds < 5; rounds++){
+                    for(var i = 0; i < arrayOfAI.length; i++){
+                        for(var j = 0; j < arrayOfAI.length; j++){
+                            updateScores(arrayOfAI, arrayOfAINames, elo, wins, draws, losses);
+                            isOutOfBook = false;
+                            if (i == j) {
+                                continue;
+                            }
+                            getCurrentMatch(arrayOfAINames, i, j);
+                            chess = new Chess();
+                            updatePosition(board, chess);
+                            let delayres = await delay(500);
+
+                            // true = white, false = black
+                            var turn = true;
+                            var isDraw = false;
+                            var ifWhiteWon = false; 
+
+                            console.log("Game " + arrayOfAINames[i] + " vs " + arrayOfAINames[j]);
+
+                            while (!chess.game_over()) {
+                                let delayres = await delay(50);
+
+                                // AI selection for white
+                                console.log("White turn");
+                                arrayOfAI[i]();
+                                turn = false;
+                                updatePosition(board, chess);
+                                renderMoveHistory(chess.history());
+                                ifWhiteWon = true;
+                                if (chess.game_over()) break;
+
+                                delayres = await delay(50);
+                                // AI selection for black
+                                console.log("Black turn");
+                                arrayOfAI[j]();
+                                turn = true;
+                                updatePosition(board, chess);
+                                renderMoveHistory(chess.history());
+                                ifWhiteWon = false;
+                            }
+                            
+                            // Then let the AIs play
+                            games.push(chess.pgn());
+
+                            const score = 0;
+
+                            if(chess.in_draw() || chess.in_threefold_repetition()){
+                                score = 0.5;
+                                console.log(arrayOfAINames[i] + " vs "+ arrayOfAINames[j] + ": Draw");
+                                draws[i]++;
+                                draws[j]++;
+                            }
+                            else if(ifWhiteWon){
+                                score = 1;
+                                console.log(arrayOfAINames[i] + " vs "+ arrayOfAINames[j] + ": White won");
+                                wins[i]++;
+                                losses[j]++;
+                            }
+                            else{
+                                score = 0;
+                                console.log(arrayOfAINames[i] + " vs "+ arrayOfAINames[j] + ": Black won");
+                                losses[i]++;
+                                wins[j]++;
+                            }
+
+                            // const whiteTotalMatches = wins[i] + losses[i] + draws[i];
+                            // const blackTotalMatches = wins[j] + losses[j] + draws[j];
+
+                            // white vs black -> black - white
+                            // const kWhite = 128 * Math.sqrt(1/(whiteTotalMatches + 1)) + 8;
+                            // const kBlack = 128 * Math.sqrt(1/(blackTotalMatches + 1)) + 8;
+                            const whiteRatingDifference = elo[j] - elo[i];
+                            const whiteExpectedScore = 1.0 / (Math.pow(10, whiteRatingDifference / 400) + 1);
+
+                            const whiteGainedElo = (40.0 * (score - whiteExpectedScore));
+                            elo[i] = elo[i] + whiteGainedElo;
+                            const blackGainedElo = 40.0 * ((1 - score) - whiteExpectedScore);
+                            elo[j] = elo[j] + blackGainedElo;
+
+                            console.log(arrayOfAINames[i] + "'s new elo is now: "+ elo[i]);
+                            console.log(arrayOfAINames[i] + ((whiteGainedElo > 0) ? " gained " : " lost ") + (20.0 * (score - whiteExpectedScore)) + " elo");
+                            console.log(arrayOfAINames[i] + " has a score of W:" + wins[i] + " D:" + draws[i] + " L:" + losses[i]);
+                            console.log(arrayOfAINames[j] + "'s new elo is now: "+ elo[j]);
+                            console.log(arrayOfAINames[j] + ((blackGainedElo > 0) ? " gained " : " lost ") + (20.0 * ((1 - score) - whiteExpectedScore)) + " elo");
+                            console.log(arrayOfAINames[j] + " has a score of W:" + wins[j] + " D:" + draws[j] + " L:" + losses[j]);
+                        }
+                    }
+                }
+
+                for(var i = 0; i < arrayOfAI.length; i++){
+                    console.log(arrayOfAINames[i] + "'s elo is: "+ elo[i] + " with a score of " + wins[i] + "-" + draws[i] + "-" + losses[i]);
+                }
+
+                console.log(games);
+            }
+
+            main();
+        </script>
+        <div id="move-history"></div>
+    </body>
+</html>
