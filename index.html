@@ -52,13 +52,28 @@
                 historyElement.scrollTop(historyElement[0].scrollHeight);
             };
 
-            function updateScores(arrayOfAI, arrayOfAINames, elo, wins, draws, losses) {
+            function updateScores(AIs) {
                 var scoreElement = $('#score').empty();
                 scoreElement.empty();
-                for (var i = 0; i < arrayOfAI.length; i++) {
-                    const name = `Name: ${arrayOfAINames[i]}`.padEnd(30);
-                    const points = `Elo: ${Math.trunc(elo[i]*100)/100}`; // trunc to 2 decimals, unrounded
-                    const winHist = `W/D/L: ${wins[i]}/${draws[i]}/${losses[i]}`;
+                sortedArrayAI = [];
+                for(let i = 0; i < AIs.length; i++) {
+                    sortedArrayAI.push({...AIs[i]});
+                }
+
+                function compare(a, b) {
+                    if (a.elo < b.elo)
+                        return 1;
+                    if (a.elo > b.elo)
+                        return -1;
+                    return 0;
+                }
+
+                sortedArrayAI.sort(compare);
+
+                for (var i = 0; i < AIs.length; i++) {
+                    const name = `Name: ${sortedArrayAI[i].name}`.padEnd(30);
+                    const points = `Elo: ${Math.trunc(sortedArrayAI[i].elo*100)/100}`; // trunc to 2 decimals, unrounded
+                    const winHist = `W/D/L: ${sortedArrayAI[i].wins}/${sortedArrayAI[i].draws}/${sortedArrayAI[i].losses}`;
                     scoreElement.append('<span><pre>' + name.padEnd(35) + points.padEnd(20) + winHist.padEnd(10) +'</pre></span>')
                 }
                 scoreElement.scrollTop(scoreElement[0].scrollHeight);
@@ -100,28 +115,28 @@
                     // Can only move one piece, when it dies, it will move a new piece
                     // When it moves, it will always move a different piece (unless forced to)
                     //async function(){possessedAI(chess)}
-                    async function(){markovAI(chess, turn)}, // uses markov chains to make moves, built on 13 gb worth of lichess games from their database
-                    async function(){worstfishAI(chess, turn, 3)}, // minimaxAI but picks the worst move
-                    async function(){swarmAI(chess, turn)}, // pieces goes to other king
-                    async function(){suicideAI(chess)}, // king goes to other king
-                    async function(){randomAI(chess, turn)}, // purely random
-                    async function(){normDistAI(chess)}, // random, but picked with a normal distribution
+                    function(){ minimaxAI(chess, turn, 3, false, false, false, false)}, 
+                    function(){ minimaxAI(chess, turn, 3, false, false, false, true)},
+                    function(){ antiChessAI(chess, turn)}, // minimax but captures are forced
+                    async function(){await markovAI(chess, turn)}, // uses markov chains to make moves, built on 13 gb worth of lichess games from their database
+                    async function(){await worstfishAI(chess, turn, 3)}, // minimaxAI but picks the worst move
+                    async function(){await swarmAI(chess, turn)}, // pieces goes to other king
+                    async function(){await suicideAI(chess)}, // king goes to other king
+                    async function(){await randomAI(chess, turn)}, // purely random
+                    async function(){await normDistAI(chess)}, // random, but picked with a normal distribution
                     async function(){await sha256AI(chess)}, // makes a move based on the sha256 hash of the board
-                    async function(){binomialDistAI(chess)}, // random, but picked with a binomial distribution
-                    async function(){selfCripplingAI(chess)}, // maximizes the ratio of moves it can make vs the number of opponent's moves
-                    async function(){lawyerAI(chess)}, // minimizes the ratio of moves it can make vs the number of opponent's moves
-                    async function(){liberationAI(chess)}, // maximizes opponent's possible moves
-                    async function(){rightRemovalAI(chess)}, // minimizes opponent's possible moves
-                    async function(){huddleAI(chess, turn)}, // pieces goes close to the friendly king
-                    async function(){fastMateAI(chess, turn, 3)}, // finds the fastest mate possible, goes 3 deep
-                    async function(){sameColorAI(chess, turn)}, // pieces goes to the same color
-                    async function(){oppositeColorAI(chess, turn)}, // pieces goes to the opposite color
-                    async function(){CheckmateCheckAttack(chess)}, // picks a checkmate, if not Check, if not attack, if not, some random move
-                    async function(){antiChessAI(chess, turn)}, // minimax but captures are forced
-                    async function(){alphabeticalAI(chess)}, // picks the first move from a move list sorted alphabetically
-                    async function(){antiAlphabeticalAI(chess)}, // picks the last move from a move list sorted alphabetically
-                    async function(){minimaxAI(chess, turn, 3, false, false, false, false)}, 
-                    async function(){minimaxAI(chess, turn, 3, false, false, false, true)}, 
+                    async function(){await binomialDistAI(chess)}, // random, but picked with a binomial distribution
+                    async function(){await selfCripplingAI(chess)}, // maximizes the ratio of moves it can make vs the number of opponent's moves
+                    async function(){await lawyerAI(chess)}, // minimizes the ratio of moves it can make vs the number of opponent's moves
+                    async function(){await liberationAI(chess)}, // maximizes opponent's possible moves
+                    async function(){await rightRemovalAI(chess)}, // minimizes opponent's possible moves
+                    async function(){await huddleAI(chess, turn)}, // pieces goes close to the friendly king
+                    async function(){await fastMateAI(chess, turn, 3)}, // finds the fastest mate possible, goes 3 deep
+                    async function(){await sameColorAI(chess, turn)}, // pieces goes to the same color
+                    async function(){await oppositeColorAI(chess, turn)}, // pieces goes to the opposite color
+                    async function(){await CheckmateCheckAttack(chess)}, // picks a checkmate, if not Check, if not attack, if not, some random move
+                    async function(){await alphabeticalAI(chess)}, // picks the first move from a move list sorted alphabetically
+                    async function(){await antiAlphabeticalAI(chess)}, // picks the last move from a move list sorted alphabetically 
                     // async function(){minimaxAI(chess, turn, 3, false, false, true, false)},
                     // async function(){minimaxAI(chess, turn, 3, false, false, true, true)},
                     // async function(){minimaxAI(chess, turn, 3, false, true, false, false)},
@@ -139,6 +154,9 @@
                 ];
 
                 var arrayOfAINames = [
+                    "MiniMax AI FFFF", // no futility, no deep futility, no super deep futility, no quiet search
+                    "MiniMax AI FFFT", // no futility, no deep futility, no super deep futility, quiet search
+                    "Anti-Chess AI",
                     "Markov AI",
                     "Worstfish AI",
                     "Swarm AI",
@@ -156,52 +174,56 @@
                     "Same Color AI",
                     "Opposite Color AI",
                     "Checkmate Check Attack AI",
-                    "Anti-Chess AI",
                     "Alphabetical AI",
                     "Anti-Alphabetical AI",
-                    "MiniMax AI FFFF", // no futility, no deep futility, no super deep futility, no quiet search
-                    "MiniMax AI FFFT", // no futility, no deep futility, no super deep futility, quiet search
-                    // "MiniMax AI FFTF", // no futility, no deep futility, super deep futility, no quiet search
-                    // "MiniMax AI FFTT", // no futility, no deep futility, super deep futility, quiet search
-                    // "MiniMax AI FTFF", // no futility, deep futility, no super deep futility, no quiet search   
-                    // "MiniMax AI FTFT", // no futility, deep futility, no super deep futility, quiet search
-                    // "MiniMax AI FTTF", // no futility, deep futility, super deep futility, no quiet search
-                    // "MiniMax AI FTTT", // no futility, deep futility, super deep futility, quiet search
-                    // "MiniMax AI TFFF", // futility, no deep futility, no super deep futility, no quiet search
-                    // "MiniMax AI TFFT", // futility, no deep futility, no super deep futility, quiet search
-                    // "MiniMax AI TFTF", // futility, no deep futility, super deep futility, no quiet search
-                    // "MiniMax AI TFTT", // futility, no deep futility, super deep futility, quiet search
-                    // "MiniMax AI TTFF", // futility, deep futility, no super deep futility, no quiet search
-                    // "MiniMax AI TTFT", // futility, deep futility, no super deep futility, quiet search
-                    // "MiniMax AI TTTF", // futility, deep futility, super deep futility, no quiet search
-                    // "MiniMax AI TTTT" // futility, deep futility, super deep futility, quiet search
                 ]
 
                 var games = [];
 
-                var elo = [];
-                for (var i = 0; i < arrayOfAI.length; i++) {
-                    elo.push(1000.0);
-                }
+                var elo = [1314.950, 1187.375, 989.584, 
+                885.914, 993.587, 1030.982, 
+                836.265, 955.242, 877.977, 
+                842.680, 1012.742, 909.240, 
+                960.851, 839.464, 1140.966, 
+                913.305, 1198.016, 958.950, 
+                973.821, 1020.653, 956.996, 968.611];
+                // for (var i = 0; i < arrayOfAI.length; i++) {
+                //     elo.push(1000.0);
+                // }
 
-                var wins = [];
-                for (var i = 0; i < arrayOfAI.length; i++) {
-                    wins.push(0);
-                }
+                var wins = [37, 13, 4, 1, 12, 13, 0, 5, 3, 0, 9, 1, 0, 0, 17, 0, 28, 2, 3, 7, 1, 3];
+                // for (var i = 0; i < arrayOfAI.length; i++) {
+                //     wins.push(0);
+                // }
 
-                var losses = [];
-                for (var i = 0; i < arrayOfAI.length; i++) {
-                    losses.push(0);
-                }
+                var losses = [0, 0, 5, 9, 11, 9, 13, 8, 13, 14, 6, 9, 3, 15, 2, 8, 5, 6, 5, 4, 7, 7];
+                // for (var i = 0; i < arrayOfAI.length; i++) {
+                //     losses.push(0);
+                // }
 
-                var draws = [];
-                for (var i = 0; i < arrayOfAI.length; i++) {
-                    draws.push(0);
+                var draws = [0, 7, 31, 31, 18, 19, 28, 28, 25, 27, 26, 31, 38, 26, 22, 33, 8, 33, 33, 30, 32, 30];
+                // for (var i = 0; i < arrayOfAI.length; i++) {
+                //     draws.push(0);
+                // }
+                
+                let AIs = [];
+                // construct objects for each AI
+                for(let i = 0; i < arrayOfAI.length; i++){
+                    AIs.push({
+                        name: arrayOfAINames[i],
+                        ai: arrayOfAI[i],
+                        elo: elo[i],
+                        wins: wins[i],
+                        losses: losses[i],
+                        draws: draws[i],
+                        gamesPlayed: wins[i] + losses[i] + draws[i]
+                    });
                 }
+    
                 for(var rounds = 0; rounds < 5; rounds++){
                     for(var i = 0; i < arrayOfAI.length; i++){
                         for(var j = 0; j < arrayOfAI.length; j++){
-                            updateScores(arrayOfAI, arrayOfAINames, elo, wins, draws, losses);
+                            updateScores(AIs);
                             isOutOfBook = false;
                             if (i == j) {
                                 continue;
@@ -219,7 +241,7 @@
                             console.log("Game " + arrayOfAINames[i] + " vs " + arrayOfAINames[j]);
 
                             while (!chess.game_over()) {
-                                let delayres = await delay(50);
+                                let delayres = await delay(500);
 
                                 // AI selection for white
                                 console.log("White turn");
@@ -230,7 +252,7 @@
                                 ifWhiteWon = true;
                                 if (chess.game_over()) break;
 
-                                delayres = await delay(50);
+                                delayres = await delay(500);
                                 // AI selection for black
                                 console.log("Black turn");
                                 arrayOfAI[j]();
@@ -243,47 +265,48 @@
                             // Then let the AIs play
                             games.push(chess.pgn());
 
-                            const score = 0;
+                            let score = 0;
 
                             if(chess.in_draw() || chess.in_threefold_repetition()){
                                 score = 0.5;
                                 console.log(arrayOfAINames[i] + " vs "+ arrayOfAINames[j] + ": Draw");
-                                draws[i]++;
-                                draws[j]++;
+                                AIs[i].draws++;
+                                AIs[j].draws++;
                             }
                             else if(ifWhiteWon){
                                 score = 1;
                                 console.log(arrayOfAINames[i] + " vs "+ arrayOfAINames[j] + ": White won");
-                                wins[i]++;
-                                losses[j]++;
+                                AIs[i].wins++;
+                                AIs[j].losses++;
                             }
                             else{
                                 score = 0;
                                 console.log(arrayOfAINames[i] + " vs "+ arrayOfAINames[j] + ": Black won");
-                                losses[i]++;
-                                wins[j]++;
+                                AIs[i].losses++;
+                                AIs[j].wins++;
                             }
 
                             // const whiteTotalMatches = wins[i] + losses[i] + draws[i];
                             // const blackTotalMatches = wins[j] + losses[j] + draws[j];
-
+                            
+                            // i = white, j = black
                             // white vs black -> black - white
                             // const kWhite = 128 * Math.sqrt(1/(whiteTotalMatches + 1)) + 8;
                             // const kBlack = 128 * Math.sqrt(1/(blackTotalMatches + 1)) + 8;
-                            const whiteRatingDifference = elo[j] - elo[i];
+                            const whiteRatingDifference = AIs[j].elo - AIs[i].elo;
                             const whiteExpectedScore = 1.0 / (Math.pow(10, whiteRatingDifference / 400) + 1);
 
                             const whiteGainedElo = (40.0 * (score - whiteExpectedScore));
-                            elo[i] = elo[i] + whiteGainedElo;
+                            AIs[i].elo  = AIs[i].elo + whiteGainedElo;
                             const blackGainedElo = 40.0 * ((1 - score) - whiteExpectedScore);
-                            elo[j] = elo[j] + blackGainedElo;
+                            AIs[j].elo  = AIs[j].elo  + blackGainedElo;
 
-                            console.log(arrayOfAINames[i] + "'s new elo is now: "+ elo[i]);
+                            console.log(arrayOfAINames[i] + "'s new elo is now: "+ AIs[i].elo);
                             console.log(arrayOfAINames[i] + ((whiteGainedElo > 0) ? " gained " : " lost ") + (20.0 * (score - whiteExpectedScore)) + " elo");
-                            console.log(arrayOfAINames[i] + " has a score of W:" + wins[i] + " D:" + draws[i] + " L:" + losses[i]);
-                            console.log(arrayOfAINames[j] + "'s new elo is now: "+ elo[j]);
+                            console.log(arrayOfAINames[i] + " has a score of W:" + AIs[i].wins + " D:" + AIs[i].draws + " L:" + AIs[i].losses);
+                            console.log(arrayOfAINames[j] + "'s new elo is now: "+ AIs[j].elo);
                             console.log(arrayOfAINames[j] + ((blackGainedElo > 0) ? " gained " : " lost ") + (20.0 * ((1 - score) - whiteExpectedScore)) + " elo");
-                            console.log(arrayOfAINames[j] + " has a score of W:" + wins[j] + " D:" + draws[j] + " L:" + losses[j]);
+                            console.log(arrayOfAINames[j] + " has a score of W:" + AIs[j].wins + " D:" + AIs[j].draws + " L:" + AIs[j].losses);
                         }
                     }
                 }
