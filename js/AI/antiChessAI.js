@@ -9,7 +9,7 @@ function antiChessAI(chess, turn){
         }
     }
 
-    if(captures === []){
+    if(captures == ""){
         minimaxAI(chess, turn, 3);
         return;
     }
