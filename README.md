@@ -13,6 +13,48 @@ In the folder named "js", there's some cpp code.
 Those are used for creating Markov Chains and Opening Books from Pgns for the markov ai and minimax.
 Feel free to swap out the Chains and/or Books used!
 
+## Relative Strength Of The AIs
+I used the ELO rating system since that is what is used for FIDE. (learn more here: https://en.wikipedia.org/wiki/Elo_rating_system)
+I initially wanted to implement the Glicko-2 rating system but unfortunately, it seems to be too complex for little benefit.
+You may notice that the number of wins doesn't correlate with the elo. 
+That is because Elo weighs wins and loses differently depending on the opponent's Elo
+you will gain more if it was less likely for you to win, you will gain less if it was more likely for you to win!
+The opposite is also true. I write more about this in `Some Notable Findings`.
+
+Name: MiniMax AI FFFF              Elo: 2764.3         W/D/L: 111/5/2
+Name: MiniMax AI FFFT              Elo: 2186.66        W/D/L: 66/31/4
+Name: Anti-Chess AI                Elo: 2082.55        W/D/L: 58/53/10
+Name: Fastest Mate AI              Elo: 1997.11        W/D/L: 83/23/15
+Name: Checkmate Check Attack AI    Elo: 1483.71        W/D/L: 31/60/10
+Name: Anti-Movement AI             Elo: 1455.53        W/D/L: 47/60/14
+Name: Swarm AI                     Elo: 1132.93        W/D/L: 40/50/32
+Name: BinomialDistribution AI      Elo: 905.26         W/D/L: 20/78/23
+Name: Anti-Alphabetical AI         Elo: 832.59         W/D/L: 10/71/19
+Name: Random AI                    Elo: 831.27         W/D/L: 18/75/28
+Name: Lawyer AI                    Elo: 800.71         W/D/L: 5/99/17
+Name: Opposite Color AI            Elo: 769.58         W/D/L: 7/79/21
+Name: Same Color AI                Elo: 685.42         W/D/L: 7/87/27
+Name: Worstfish AI                 Elo: 670.71         W/D/L: 26/52/44
+Name: Huddle AI                    Elo: 668.38         W/D/L: 3/93/25
+Name: Alphabetical AI              Elo: 617.16         W/D/L: 3/75/22
+Name: Normal Distribution AI       Elo: 589.44         W/D/L: 8/78/35
+Name: Self-Cripling AI             Elo: 526.55         W/D/L: 1/88/32
+Name: Markov AI                    Elo: 421.78         W/D/L: 8/75/39
+Name: Suicide AI                   Elo: 404.17         W/D/L: 2/81/38
+Name: SHA-256 AI                   Elo: 267.2          W/D/L: 0/74/47
+Name: Liberation AI                Elo: 236.12         W/D/L: 3/65/53
+
+## Some Notable findings:
+1. Despite it being random, Binomial Distribution AI is a fair amount "better" than pure randomness, the strongest out of the random AIs having a W/D/L of 20/78/23.
+2. Oddly, Normal Distribution AI despite it being fairly similar to BinomialDistribution, performs terribly, with less than half the wins Binomial Distribution has.
+3. Making your king go "LEEEEROOOOOYYYY JEEEEEEEEENKINS" has somehow won 2 games! (Suicide AI).
+4. Worstfish, despite having a whopping 26 wins, it is very low rated. The reason being is that it wins more commonly against the weakest bots, but however... Essentially loses against everyone else. but that also raises a question!
+5. Worstfish, despite it being told to pick the worst move, still can win!?? how and why? Well, its because my engine (MiniMax AI FFFF) is not that strong and thus what if thinks the weakest move, may accidently be the strongest or one of the strongest.
+6. My engine lost 2 games, both to itself BUT with quiet search enabled (MiniMax AI FFFT) (details about what that is, below).
+7. Oddly, somehow huddling together won thrice? despite it being purely 100% defensive.
+8. As expected, playing aggressively (Anti-Movement, Swarm, Checkmate Check Attack AI, Fastest mate) dominates the weakest or defensive AIs! We humans found that out a while ago too. Taking the initiative is generally a really good idea.
+9. The only AI without a win is SHA-256, this is likely due to it being super deterministic and hashing the board doesn't result in many mates. 
+10. When a weak AI is paired against a weak AI, the games can get rediculously long. One such game lasted well over 500 moves...
 
 ## Feature Set of my minimax AI:
 1. Piece square tables
