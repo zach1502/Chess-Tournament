@@ -21,50 +21,52 @@ That is because Elo weighs wins and loses differently depending on the opponent'
 you will gain more if it was less likely for you to win, you will gain less if it was more likely for you to win!
 The opposite is also true. I write more about this in `Some Notable Findings`.
 
-Name: MiniMax AI FFFF              Elo: 2764.3         W/D/L: 111/5/2
+Name: MiniMax AI FFFF Elo: 4203.81 W/D/L: 204/17/6
 
-Name: MiniMax AI FFFT              Elo: 2186.66        W/D/L: 66/31/4
+Name: MiniMax AI FFFT Elo: 3375.35 W/D/L: 130/59/6
 
-Name: Anti-Chess AI                Elo: 2082.55        W/D/L: 58/53/10
+Name: Fastest Mate AI Elo: 3042.75 W/D/L: 146/36/28
 
-Name: Fastest Mate AI              Elo: 1997.11        W/D/L: 83/23/15
+Name: Anti-Chess AI Elo: 2909.75 W/D/L: 105/89/16
 
-Name: Checkmate Check Attack AI    Elo: 1483.71        W/D/L: 31/60/10
+Name: Checkmate Check Attack AI Elo: 1859.62 W/D/L: 68/123/19
 
-Name: Anti-Movement AI             Elo: 1455.53        W/D/L: 47/60/14
+Name: Anti-Movement AI Elo: 1645.29 W/D/L: 66/118/26
 
-Name: Swarm AI                     Elo: 1132.93        W/D/L: 40/50/32
+Name: Swarm AI Elo: 1112.62 W/D/L: 64/91/56
 
-Name: BinomialDistribution AI      Elo: 905.26         W/D/L: 20/78/23
+Name: BinomialDistribution AI Elo: 924.11 W/D/L: 36/136/38
 
-Name: Anti-Alphabetical AI         Elo: 832.59         W/D/L: 10/71/19
+Name: Random AI Elo: 700.24 W/D/L: 33/128/49
 
-Name: Random AI                    Elo: 831.27         W/D/L: 18/75/28
+Name: Lawyer AI Elo: 657.57 W/D/L: 8/175/27
 
-Name: Lawyer AI                    Elo: 800.71         W/D/L: 5/99/17
+Name: Anti-Alphabetical AI Elo: 555.86 W/D/L: 19/149/41
 
-Name: Opposite Color AI            Elo: 769.58         W/D/L: 7/79/21
+Name: Opposite Color AI Elo: 545.19 W/D/L: 12/162/36
 
-Name: Same Color AI                Elo: 685.42         W/D/L: 7/87/27
+Name: Huddle AI Elo: 287.06 W/D/L: 5/161/44
 
-Name: Worstfish AI                 Elo: 670.71         W/D/L: 26/52/44
+Name: Same Color AI Elo: 284.71 W/D/L: 10/152/48
 
-Name: Huddle AI                    Elo: 668.38         W/D/L: 3/93/25
+Name: Normal Distribution AI Elo: 279.16 W/D/L: 17/136/57
 
-Name: Alphabetical AI              Elo: 617.16         W/D/L: 3/75/22
+Name: Worstfish AI Elo: 249.06 W/D/L: 44/88/79
 
-Name: Normal Distribution AI       Elo: 589.44         W/D/L: 8/78/35
+Name: Alphabetical AI Elo: 97.51 W/D/L: 5/149/55
 
-Name: Self-Cripling AI             Elo: 526.55         W/D/L: 1/88/32
+Name: Self-Cripling AI Elo: -129.21 W/D/L: 1/147/62
 
-Name: Markov AI                    Elo: 421.78         W/D/L: 8/75/39
+Name: Markov AI Elo: -164.32 W/D/L: 12/131/68
 
-Name: Suicide AI                   Elo: 404.17         W/D/L: 2/81/38
+Name: Suicide AI Elo: -260.98 W/D/L: 3/141/67
 
-Name: SHA-256 AI                   Elo: 267.2          W/D/L: 0/74/47
+Name: Liberation AI Elo: -450.38 W/D/L: 5/120/85
 
-Name: Liberation AI                Elo: 236.12         W/D/L: 3/65/53
+Name: SHA-256 AI Elo: -480.45 W/D/L: 0/130/80
 
+and Yes, negative elo IS possible! What matters in the calculations is the elo difference. So there's no ill side effects. Here's the above, but in a graph
+![a graph of the ratings](https://i.imgur.com/IUjKChJ.png)
 
 ## Some Notable findings:
 1. Despite it being random, Binomial Distribution AI is a fair amount "better" than pure randomness, the strongest out of the random AIs having a W/D/L of 20/78/23.
